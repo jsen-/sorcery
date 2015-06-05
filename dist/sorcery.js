@@ -22,11 +22,19 @@ function sourcemapComment(url, dest) {
 
 var SOURCEMAP_COMMENT = new RegExp('\n*(?:' + ('\\/\\/[@#]\\s*' + SOURCEMAPPING_URL + '=([^\'"]+)|') + ( // js
 '\\/\\*#?\\s*' + SOURCEMAPPING_URL + '=([^\'"]+)\\s\\*\\/)') + // css
-'\\s*$', 'g'); // js
+'\\s*$', 'g');
 
+function slash(path) {
+  if (typeof path === 'string') return path.replace(/\\/g, '/');
+  return path;
+}/**
+ * Encodes a string as base64
+ * @param {string} str - the string to encode
+ * @returns {string}
+ */
 function btoa(str) {
   return new Buffer(str).toString('base64');
-}var __classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } };
+}function __classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
 var SourceMap = (function () {
 	function SourceMap(properties) {
@@ -104,7 +112,7 @@ function tally(nodes, stat) {
 	}, 0);
 }
 
-var ___classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } };// css
+function ___classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
 var Chain = (function () {
 	function Chain(node, sourcesContentByPath) {
@@ -202,7 +210,7 @@ var Chain = (function () {
 		return new SourceMap({
 			file: path.basename(this.node.file),
 			sources: allSources.map(function (source) {
-				return path.relative(options.base || path.dirname(_this.node.file), source);
+				return slash(path.relative(options.base || path.dirname(_this.node.file), source));
 			}),
 			sourcesContent: allSources.map(function (source) {
 				return includeContent ? _this.sourcesContentByPath[source] : null;
@@ -244,7 +252,7 @@ var Chain = (function () {
 	};
 
 	return Chain;
-})(); // source
+})();
 
 function resolveSourcePath(node, sourceRoot, source) {
 	return path.resolve(path.dirname(node.file), sourceRoot || '', source);
@@ -328,11 +336,24 @@ function decodeMappings(mappings) {
 	}
 
 	return cache[checksum];
-}
-
+}/**
+ * Decodes a base64 string
+ * @param {string} base64 - the string to decode
+ * @returns {string}
+ */
 function atob(base64) {
   return new Buffer(base64, 'base64').toString('utf8');
-}
+}/**
+ * Turns a sourceMappingURL into a sourcemap
+ * @param {string} url - the URL (i.e. sourceMappingURL=url). Can
+   be a base64-encoded data URI
+ * @param {string} base - the URL against which relative URLS
+   should be resolved
+ * @param {boolean} sync - if `true`, return a promise, otherwise
+   return the sourcemap
+ * @returns {object} - a version 3 sourcemap
+ */
+
 function getMapFromUrl(url, base, sync) {
 	if (/^data:/.test(url)) {
 		// TODO beef this up
@@ -407,7 +428,7 @@ function getContent(node, sourcesContentByPath) {
 	return sander.Promise.resolve(node.content);
 }
 
-var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } };
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
 var Node = (function () {
 	function Node(_ref) {
@@ -570,34 +591,8 @@ var Node = (function () {
 	};
 
 	return Node;
-})(); // sometimes exists in sourcesContent, sometimes doesn't
+})();
 
-
-
-
-
-function init(file) {
-	var options = arguments[1] === undefined ? {} : arguments[1];
-
-	var node = new Node({ file: file });
-
-	var sourcesContentByPath = {};
-	var sourceMapByPath = {};
-
-	if (options.content) {
-		Object.keys(options.content).forEach(function (key) {
-			sourcesContentByPath[path.resolve(key)] = options.content[key];
-		});
-	}
-
-	if (options.sourcemaps) {
-		Object.keys(options.sourcemaps).forEach(function (key) {
-			sourceMapByPath[path.resolve(key)] = options.sourcemaps[key];
-		});
-	}
-
-	return { node: node, sourcesContentByPath: sourcesContentByPath, sourceMapByPath: sourceMapByPath };
-}
 function load(file, options) {
 	var _init = init(file, options);
 
@@ -621,6 +616,29 @@ function loadSync(file) {
 
 	node.loadSync(sourcesContentByPath, sourceMapByPath);
 	return node.isOriginalSource ? null : new Chain(node, sourcesContentByPath);
+}
+
+function init(file) {
+	var options = arguments[1] === undefined ? {} : arguments[1];
+
+	var node = new Node({ file: file });
+
+	var sourcesContentByPath = {};
+	var sourceMapByPath = {};
+
+	if (options.content) {
+		Object.keys(options.content).forEach(function (key) {
+			sourcesContentByPath[path.resolve(key)] = options.content[key];
+		});
+	}
+
+	if (options.sourcemaps) {
+		Object.keys(options.sourcemaps).forEach(function (key) {
+			sourceMapByPath[path.resolve(key)] = options.sourcemaps[key];
+		});
+	}
+
+	return { node: node, sourcesContentByPath: sourcesContentByPath, sourceMapByPath: sourceMapByPath };
 }
 
 exports.load = load;
